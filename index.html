@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html data-app-mode="main" lang="uk">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="build-timestamp" content="2025-10-02T06:16:22.332Z">
+<meta name="build-version" content="1.1.17">
+<title>monobank</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Миколаївелектротранс">
+<meta property="og:description" content="Сувенірний квиток">
+<style>
+@font-face {
+    font-family: 'e-Ukraine Head';
+    src: url('fonts/e-UkraineHead.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'e-Ukraine';
+    src: url('fonts/e-Ukraine.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+    * {
+        box-sizing: border-box;
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+        scrollbar-width: thin;
+        outline: 0;
+        -webkit-text-size-adjust: none;
+        text-size-adjust: none;
+    }
+
+    html, body {
+        margin: 0;
+        background: #FAFAFA;
+    }
+
+    html {
+        height: 100%;
+    }
+
+    body {
+        min-height: 100%;
+        font-size: 16px;
+        font-family: "e-Ukraine", "Lato", "Roboto", -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+        display: flex;
+        flex-direction: column;
+    }
+
+    h1, h2, .ticket-layout--merchant-title {
+        font-family: "e-Ukraine Head", "e-Ukraine", "Lato", "Roboto", -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-weight: 600;
+    }
+
+    main {
+        flex-grow: 1;
+        color: black;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        transition: opacity .2s, transform .2s;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .main-layout-wrapper {
+        max-width: 500px;
+        width: 100%;
+        padding: 60px 20px 20px 20px;
+        overflow: visible;
+    }
+
+    .ticket-layout--logo-wrapper {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .ticket-layout--merchant-logo {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+    }
+
+    .ticket-layout--wrapper {
+        background: white;
+        border-radius: 16px;
+        padding: 32px 24px;
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.08);
+        position: relative; /* for internal absolute top-logo */
+        padding-top: 56px; /* space for overlapping logo above title */
+        overflow: visible;
+    }
+
+    /* circular logo positioned above the merchant title (inside the card) */
+    .top-logo {
+        position: absolute;
+        top: -48px; /* sits above the card content */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 96px;
+        height: 96px;
+        background: #FAFAFA; /* match page background so the circle blends with grey behind */
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        z-index: 20;
+        overflow: hidden;
+        border: none; /* remove white ring */
+    }
+
+    .top-logo .ticket-layout--merchant-logo {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+    }
+
+    /* mid-card purple scrolling banner placed under title */
+    .mid-banner {
+        width: calc(100% + 48px);
+        background: linear-gradient(90deg, #f1e1f7 0%, #e9d5f8 50%, #f1e1f7 100%);
+        color: #5b2b7a;
+        padding: 10px 16px;
+        border-radius: 0; /* removed rounding */
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 -24px 12px -24px; /* stretch to card edges */
+    }
+
+    /* marquee: two identical items scrolling continuously so text never disappears */
+    .mid-banner .marquee {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .mid-banner .marquee__track {
+        display: inline-block;
+        white-space: nowrap;
+        will-change: transform;
+        animation: marquee 12s linear infinite;
+    }
+
+    .mid-banner .marquee__item {
+        display: inline-block;
+        padding: 0 8px; /* spacing between repeats (8px each side -> 16px total) */
+        font-weight: 600;
+        color: inherit;
+    }
+
+    .mid-banner .marquee__sep {
+        display: inline-block;
+        width: 5px;
+        height: 5px;
+        background: #7b2fa1; /* purple diamond color */
+        transform: rotate(45deg);
+        margin: 0 0; /* separator sits inside the existing spacing */
+        vertical-align: middle;
+        border-radius: 1px;
+    }
+
+    @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    @keyframes scroll-rtl {
+        0% { transform: translateX(100%); }
+        100% { transform: translateX(-100%); }
+    }
+
+    .ticket-layout--block {
+        padding: 19px 0;
+    }
+
+    .ticket-layout--merchant-title {
+        font-size: 15px;
+        text-align: center;
+        margin-bottom: 12px;
+    }
+
+    .ticket-layout--merchant-separator {
+        height: 1px;
+        background: #E8E8E8;
+        margin: 20px 0;
+    }
+
+    .ticket-layout--purchased-info {
+        text-align: center;
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .ticket-layout--ticket-quantity {
+        text-align: center;
+        font-size: 38px;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: #000;
+        font-family: "e-Ukraine Head", "e-Ukraine", "Lato", "Roboto", -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    .ticket-layout--timer {
+        margin: 1px auto;
+        width: fit-content;
+    }
+
+    .ticket-layout--dashed-separator {
+        margin: 1px 0;
+        position: relative;
+    }
+
+    .ticket-layout--dashed-separator-line {
+        border-top: 2px dashed #E0E0E0;
+    }
+
+    .qr-info {
+        text-align: center;
+    }
+
+    .ticket-layout--qr-block-wrapper {
+        margin: 20px 0;
+    }
+
+    /* QR image styling: slightly rounded with subtle grey border */
+    .ticket-layout--qr-block-wrapper img,
+    .qr-image {
+        width: 200px;
+        height: 200px;
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0px 30px 30px rgba(0,0,0,0.07), 0px 10px 18px rgba(0,0,0,0.03);
+        object-fit: cover;
+        display: inline-block;
+        background: #fff;
+    }
+
+    .ticket-layout--number-info {
+        font-size: 18px;
+        color: #333;
+        margin-top: 16px;
+    }
+
+    .ticket-number {
+        font-weight: 600;
+    }
+
+    .ticket-layout--notification {
+        text-align: center;
+        color: #666;
+        font-size: 14px;
+        margin-top: 20px;
+        padding: 0 20px;
+    }
+
+    .nowrap {
+        white-space: nowrap;
+    }
+</style>
+</head>
+<body>
+    <main id="main">
+        <div class="main-layout-wrapper page-client-payment page-show-ticket">
+            
+            <div class="ticket-layout--wrapper">
+                    <div class="top-logo" aria-hidden="true">
+                        <div id="merch-logo" class="ticket-layout--merchant-logo" style="background-image: url('https://icons.monobank.com.ua/inf/icon-mdpi/mykolaivelektrotrans33.png')"></div>
+                    </div>
+                    <div class="ticket-layout--block ticket-info">
+                        <div class="mid-banner">
+                            <div class="marquee" aria-hidden="false">
+                                <div class="marquee__track">
+                                    <span class="marquee__item">Найголовніше — залишайтеся людьми і кричіть, що ви живі. Я живий!</span>
+                                    <span class="marquee__sep" aria-hidden="true"></span>
+                                    <span class="marquee__item">Найголовніше — залишайтеся людьми і кричіть, що ви живі. Я живий!</span>
+                                    <span class="marquee__sep" aria-hidden="true"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ticket-layout--merchant-title">Миколаївелектротранс Тролейбус</div>
+                        <div class="ticket-layout--merchant-separator"></div>
+                        <div class="ticket-layout--purchased-info" id="purchase-info"></div>
+                    <div class="ticket-layout--ticket-quantity">1 квиток</div>
+                    <div class="ticket-layout--timer" id="ticket-timer-wrapper"></div>
+                </div>
+
+                <div class="ticket-layout--dashed-separator">
+                    <div class="ticket-layout--dashed-separator-line"></div>
+                </div>
+
+                <div class="ticket-layout--block qr-info">
+                    <div class="ticket-layout--qr-block-wrapper">
+                        <!-- Замінено SVG на реальне зображення QR-коду -->
+                        <img src="ticket/images/qr.png" alt="QR Code квитка" class="qr-image">
+                    </div>
+                    <div class="ticket-layout--number-info">Номер: <span class="ticket-number">169&nbsp;157</span></div>
+                </div>
+            </div>
+            <div class="ticket-layout--notification">Ви зможете повторно відкрити цю сторінку через історію браузера</div>
+        </div>
+    </main>
+
+    <script>
+        let countdownTimer;
+
+        function formatDate(date) {
+            const months = [
+                'січня', 'лютого', 'березня', 'квітня', 'травня', 'червня',
+                'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'
+            ];
+            
+            const day = date.getDate();
+            const month = months[date.getMonth()];
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            
+            return `Придбано <span class="nowrap">${day} ${month}</span> о <span class="nowrap">${hours}:${minutes}</span>`;
+        }
+
+        function formatTime(hours, minutes, seconds) {
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function formatTicketNumber(number) {
+            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "&nbsp;");
+        }
+
+        function getNextTicketNumber() {
+            const STORAGE_KEY = 'ticketNumber';
+            const START_NUMBER = 169157;
+            const LIMIT_NUMBER = 170000;
+            
+            let currentNumber = localStorage.getItem(STORAGE_KEY);
+            
+            if (currentNumber === null) {
+                currentNumber = START_NUMBER;
+            } else {
+                currentNumber = parseInt(currentNumber);
+                if (currentNumber < LIMIT_NUMBER) {
+                    currentNumber++;
+                }
+            }
+            
+            localStorage.setItem(STORAGE_KEY, currentNumber);
+            
+            return currentNumber;
+        }
+
+        function updateTicketNumber() {
+            const ticketNumber = getNextTicketNumber();
+            const formattedNumber = formatTicketNumber(ticketNumber);
+            
+            const ticketNumberElement = document.querySelector('.ticket-number');
+            if (ticketNumberElement) {
+                ticketNumberElement.innerHTML = formattedNumber;
+            }
+        }
+
+        function startCountdown() {
+            let totalSeconds = 90 * 60;
+            
+            function updateTimer() {
+                if (totalSeconds <= 0) {
+                    clearInterval(countdownTimer);
+                    const timerWrapper = document.getElementById('ticket-timer-wrapper');
+                    if (timerWrapper) {
+                        timerWrapper.innerHTML = `
+                            <div style="display: flex; align-items: center; justify-content: center; white-space: nowrap; gap: 8px;">
+                                <span style="font-size: 20px;">😔</span>
+                                <span>Квитки недійсні</span>
+                            </div>
+                        `;
+                        timerWrapper.style.opacity = "0.5";
+                    }
+                    return;
+                }
+                
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                
+                const timerWrapper = document.getElementById('ticket-timer-wrapper');
+                if (timerWrapper) {
+                    timerWrapper.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: center; white-space: nowrap; gap: 8px;">
+                            <div style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid #4CAF50; background: transparent; flex-shrink: 0;"></div>
+                            <span style="font-weight: 500;">Квиток дійсний — ${formatTime(hours, minutes, seconds)}</span>
+                        </div>
+                    `;
+                    timerWrapper.style.opacity = "1";
+                    timerWrapper.style.background = "linear-gradient(91deg, #E5EFEF 0%, #D9F1EB 50%, #DDEBFA 100%)";
+                    timerWrapper.style.padding = "16px 20px";
+                    timerWrapper.style.borderRadius = "24px";
+                }
+                
+                totalSeconds--;
+            }
+            
+            updateTimer();
+            countdownTimer = setInterval(updateTimer, 1000);
+        }
+
+        function updateTicketInfo() {
+            const now = new Date();
+            
+            const purchaseInfo = document.getElementById('purchase-info');
+            if (purchaseInfo) {
+                purchaseInfo.innerHTML = formatDate(now);
+            }
+            
+            updateTicketNumber();
+            startCountdown();
+        }
+
+        window.addEventListener('beforeunload', function() {
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTicketInfo();
+        });
+
+        window.addEventListener('load', function() {
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+            }
+            updateTicketInfo();
+        });
+    </script>
+</body>
+</html>
