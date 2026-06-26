@@ -107,10 +107,10 @@ function createBlockElement(block, type, index) {
   el.dataset.type = type;
   el.dataset.index = index;
   
-  el.addEventListener('touchstart', handleBlockDragStart);
-  el.addEventListener('touchmove', handleBlockDragMove);
-  el.addEventListener('touchend', handleBlockDragEnd);
+  el.addEventListener('pointerdown', handlePointerDown);
+  // click fallback for non-pointer devices
   el.addEventListener('click', (e) => {
+    e.stopPropagation();
     openBlockEditor(type, index, block);
   });
   
@@ -188,10 +188,9 @@ function renderBoxes() {
     element.style.top = block.y + 'px';
     element.innerHTML = `<span>${block.valueA}</span><span>${block.valueB}</span>`;
     
-    element.addEventListener('touchstart', handleBlockDragStart);
-    element.addEventListener('touchmove', handleBlockDragMove);
-    element.addEventListener('touchend', handleBlockDragEnd);
+    element.addEventListener('pointerdown', handlePointerDown);
     element.addEventListener('click', (e) => {
+      e.stopPropagation();
       editingBoxId = block.id;
       editingType = 'block';
       openBlockEditor('block', null, block);
@@ -222,39 +221,32 @@ function selectColorFunc(color) {
   });
 }
 
-function handleBlockDragStart(e) {
-  const touch = e.touches[0];
-  if (!touch) return;
-  
+function handlePointerDown(e) {
+  // pointerdown on an element (mouse, touch, stylus)
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+
   isDragging = false;
-  draggingElement = this;
-  const rect = this.getBoundingClientRect();
-  
-  dragOffset.x = touch.clientX - rect.left;
-  dragOffset.y = touch.clientY - rect.top;
-  dragStartPos.x = touch.clientX;
-  dragStartPos.y = touch.clientY;
-  
+  draggingElement = e.currentTarget;
+  dragOffset.x = e.clientX - draggingElement.getBoundingClientRect().left;
+  dragOffset.y = e.clientY - draggingElement.getBoundingClientRect().top;
+  dragStartPos.x = e.clientX;
+  dragStartPos.y = e.clientY;
+
+  draggingElement.setPointerCapture?.(e.pointerId);
+  window.addEventListener('pointermove', handlePointerMove);
+  window.addEventListener('pointerup', handlePointerUp);
+
   e.preventDefault();
 }
 
-function handleBlockDragMove(e) {
+function handlePointerMove(e) {
   if (!draggingElement) return;
-  
-  const touch = e.touches[0];
-  if (!touch) return;
-  
-  const distance = Math.sqrt(
-    Math.pow(touch.clientX - dragStartPos.x, 2) + 
-    Math.pow(touch.clientY - dragStartPos.y, 2)
-  );
-  
-  if (distance > 5) {
-    isDragging = true;
-  }
-  
+
+  const distance = Math.hypot(e.clientX - dragStartPos.x, e.clientY - dragStartPos.y);
+  if (distance > 6) isDragging = true;
+
   if (!isDragging) return;
-  
+
   if (!draggingElement.classList.contains('dragging')) {
     const rect = draggingElement.getBoundingClientRect();
     draggingElement.classList.add('dragging');
@@ -264,156 +256,74 @@ function handleBlockDragMove(e) {
     draggingElement.style.width = rect.width + 'px';
     draggingElement.style.height = rect.height + 'px';
   }
-  
-  draggingElement.style.left = (touch.clientX - dragOffset.x) + 'px';
-  draggingElement.style.top = (touch.clientY - dragOffset.y) + 'px';
-  
+
+  draggingElement.style.left = (e.clientX - dragOffset.x) + 'px';
+  draggingElement.style.top = (e.clientY - dragOffset.y) + 'px';
   e.preventDefault();
 }
 
-function handleBlockDragEnd(e) {
+function handlePointerUp(e) {
   if (!draggingElement) return;
-  
-  // Если это был просто клик (без перемещения)
+
+  window.removeEventListener('pointermove', handlePointerMove);
+  window.removeEventListener('pointerup', handlePointerUp);
+  draggingElement.releasePointerCapture?.(e.pointerId);
+
+  // tap (no meaningful move) -> open editor
   if (!isDragging) {
     const id = draggingElement.dataset.id;
     const type = draggingElement.dataset.type;
-    const block = state.blocks.find((b) => b.id === id);
-    
-    if (block) {
-      editingBoxId = id;
-      editingType = 'block';
-      openBlockEditor('block', null, block);
+    // find block either in board arrays or in state.blocks
+    let block = null;
+    if (id) {
+      block = state.blocks.find((b) => b.id === id);
+    } else if (type && typeof draggingElement.dataset.index !== 'undefined') {
+      const idx = Number(draggingElement.dataset.index);
+      block = state.board[type] && state.board[type][idx];
     }
-    
+
+    if (block) {
+      if (id) {
+        editingBoxId = id;
+        editingType = 'block';
+        openBlockEditor('block', null, block);
+      } else {
+        editingType = type;
+        editingIndex = Number(draggingElement.dataset.index);
+        openBlockEditor(type, editingIndex, block);
+      }
+    }
+
     draggingElement = null;
     isDragging = false;
-    e.preventDefault();
     return;
   }
-  
-  // Если это было перемещение
+
+  // was dragging -> compute position relative to canvas and save
   const canvasRect = canvas.getBoundingClientRect();
   const elementRect = draggingElement.getBoundingClientRect();
-  
   let x = elementRect.left - canvasRect.left;
   let y = elementRect.top - canvasRect.top;
-  
   x = Math.max(0, Math.min(x, canvasRect.width - elementRect.width));
   y = Math.max(0, Math.min(y, canvasRect.height - elementRect.height));
-  
+
   const id = draggingElement.dataset.id;
-  const block = state.blocks.find((b) => b.id === id);
-  
-  if (block) {
-    block.x = x;
-    block.y = y;
-    saveState();
+  if (id) {
+    const block = state.blocks.find((b) => b.id === id);
+    if (block) {
+      block.x = x;
+      block.y = y;
+      saveState();
+    }
   }
-  
+
   draggingElement.classList.remove('dragging');
   draggingElement.style.position = 'absolute';
   draggingElement = null;
   isDragging = false;
-  
-  e.preventDefault();
 }
 
-function handleBoxDragStart(e) {
-  const touch = e.touches[0];
-  if (!touch) return;
-  
-  isDragging = false;
-  draggingElement = this;
-  const rect = this.getBoundingClientRect();
-  
-  dragOffset.x = touch.clientX - rect.left;
-  dragOffset.y = touch.clientY - rect.top;
-  dragStartPos.x = touch.clientX;
-  dragStartPos.y = touch.clientY;
-  
-  e.preventDefault();
-}
-
-function handleBoxDragMove(e) {
-  if (!draggingElement) return;
-  
-  const touch = e.touches[0];
-  if (!touch) return;
-  
-  const distance = Math.sqrt(
-    Math.pow(touch.clientX - dragStartPos.x, 2) + 
-    Math.pow(touch.clientY - dragStartPos.y, 2)
-  );
-  
-  if (distance > 5) {
-    isDragging = true;
-  }
-  
-  if (!isDragging) return;
-  
-  if (!draggingElement.classList.contains('dragging')) {
-    const rect = draggingElement.getBoundingClientRect();
-    draggingElement.classList.add('dragging');
-    draggingElement.style.position = 'fixed';
-    draggingElement.style.left = rect.left + 'px';
-    draggingElement.style.top = rect.top + 'px';
-    draggingElement.style.width = rect.width + 'px';
-    draggingElement.style.height = rect.height + 'px';
-  }
-  
-  draggingElement.style.left = (touch.clientX - dragOffset.x) + 'px';
-  draggingElement.style.top = (touch.clientY - dragOffset.y) + 'px';
-  
-  e.preventDefault();
-}
-
-function handleBoxDragEnd(e) {
-  if (!draggingElement) return;
-  
-  // Если это был просто клик (без перемещения)
-  if (!isDragging) {
-    const id = draggingElement.dataset.id;
-    const block = state.blocks.find((b) => b.id === id);
-    
-    if (block) {
-      editingBoxId = id;
-      editingType = 'block';
-      openBlockEditor('block', null, block);
-    }
-    
-    draggingElement = null;
-    isDragging = false;
-    e.preventDefault();
-    return;
-  }
-  
-  // Если это было перемещение
-  const canvasRect = canvas.getBoundingClientRect();
-  const elementRect = draggingElement.getBoundingClientRect();
-  
-  let x = elementRect.left - canvasRect.left;
-  let y = elementRect.top - canvasRect.top;
-  
-  x = Math.max(0, Math.min(x, canvasRect.width - elementRect.width));
-  y = Math.max(0, Math.min(y, canvasRect.height - elementRect.height));
-  
-  const id = draggingElement.dataset.id;
-  const block = state.blocks.find((b) => b.id === id);
-  
-  if (block) {
-    block.x = x;
-    block.y = y;
-    saveState();
-  }
-  
-  draggingElement.classList.remove('dragging');
-  draggingElement.style.position = 'absolute';
-  draggingElement = null;
-  isDragging = false;
-  
-  e.preventDefault();
-}
+// Pointer-based handlers used for both board blocks and canvas blocks
 
 addBoxBtn.addEventListener('click', createBox);
 clearBtn.addEventListener('click', clearAllState);
