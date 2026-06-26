@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Свободные места и нет/номера столов</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <h1>Свободные места и нет/номера столов</h1>
+      <p>Добавляй прямоугольники, меняй цвета и вводи две цифры в каждом.</p>
+    </header>
+
+    <main>
+      <section class="toolbar">
+        <button id="addBoxBtn">Добавить прямоугольник</button>
+        <button id="clearBtn">Очистить</button>
+        <label class="date-label">Дата:
+          <input id="dateInput" type="text" placeholder="24.06" maxlength="10" />
+        </label>
+      </section>
+
+      <section class="board">
+        <!-- Левая колонка -->
+        <div class="board-left">
+          <div class="left-date-box">
+            <div>Дата</div>
+            <div id="dateDisplay">24.06</div>
+          </div>
+          <div class="left-blocks-grid" id="leftGrid"></div>
+        </div>
+
+        <!-- Центр верхний большой квадрат -->
+        <div class="board-center">
+          <div class="center-main">
+            <div class="large-square"></div>
+          </div>
+        </div>
+
+        <!-- Правая колонка верх -->
+        <div class="board-right-top">
+          <div class="right-blocks-grid" id="rightTopGrid"></div>
+        </div>
+
+        <!-- Центр средний с звёздами -->
+        <div class="board-center-stars">
+          <div class="star-row">
+            <div class="star"></div>
+            <div class="star"></div>
+          </div>
+        </div>
+
+        <!-- Правая колонка низ -->
+        <div class="board-right-bottom">
+          <div class="right-blocks-grid vertical" id="rightBottomGrid"></div>
+        </div>
+
+        <!-- Низ центр -->
+        <div class="board-bottom-center" style="grid-column: 1 / 4;">
+          <div class="bottom-blocks-grid" id="bottomCenterGrid"></div>
+        </div>
+      </section>
+
+      <!-- Редактируемые прямоугольники -->
+      <section id="canvas" class="canvas"></section>
+
+      <section class="instructions">
+        <h2>Как пользоваться</h2>
+        <ol>
+          <li>Установи дату в поле сверху.</li>
+          <li>Кликни на синие, зелёные или жёлтые блоки на доске, чтобы отредактировать их.</li>
+          <li>Нажми «Добавить прямоугольник», чтобы добавить новый элемент.</li>
+          <li>Нажми «Очистить», чтобы вернуть всё в исходный вариант.</li>
+        </ol>
+      </section>
+    </main>
+  </div>
+
+  <div id="editorPanel" class="editor-panel hidden">
+    <h2>Редактировать блок</h2>
+    <div class="color-picker">
+      <button type="button" class="color-option color-blue" data-color="#38bdf8"></button>
+      <button type="button" class="color-option color-red" data-color="#f87171"></button>
+      <button type="button" class="color-option color-yellow" data-color="#fbbf24"></button>
+    </div>
+    <label>
+      Число по броням:
+      <input id="valueA" type="number" />
+    </label>
+    <label>
+      Число для оффиков:
+      <input id="valueB" type="number" />
+    </label>
+    <div class="panel-actions">
+      <button id="saveBtn">Сохранить</button>
+      <button id="deleteBtn">Удалить</button>
+      <button id="closeBtn">Закрыть</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
